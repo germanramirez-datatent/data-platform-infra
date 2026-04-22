@@ -20,3 +20,10 @@ provider "aws" {
     }
   }
 }
+
+module "s3_data_lake" {
+  source  = "../../modules/s3-data-lake"
+  project = "data-platform"
+  env     = "dev"
+  account_id = "811430801421"
+}
