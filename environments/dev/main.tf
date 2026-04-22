@@ -41,3 +41,22 @@ module "iam" {
 
   # eks_oidc_provider_url vacío hasta Fase 3
 }
+
+module "glue" {
+  source = "../../modules/glue"
+
+  project    = "data-platform"
+  env        = "dev"
+
+  glue_role_arn     = module.iam.glue_role_arn
+  raw_bucket_id     = module.s3_data_lake.raw_bucket_id
+  curated_bucket_id = module.s3_data_lake.curated_bucket_id
+}
+
+module "athena" {
+  source = "../../modules/athena"
+
+  project                  = "data-platform"
+  env                      = "dev"
+  athena_results_bucket_id = module.s3_data_lake.athena_results_bucket_id
+}
