@@ -68,6 +68,35 @@ data "aws_iam_policy_document" "glue_access" {
 
     resources = ["*"]
   }
+
+  statement {
+    sid    = "AllowGlueCatalogAccess"
+    effect = "Allow"
+
+    actions = [
+      "glue:GetDatabase",
+      "glue:GetDatabases",
+      "glue:UpdateDatabase",
+      "glue:GetTable",
+      "glue:GetTables",
+      "glue:GetTableVersion",
+      "glue:GetTableVersions",
+      "glue:GetPartition",
+      "glue:BatchGetPartition",
+      "glue:GetPartitions",
+      "glue:CreateTable",
+      "glue:UpdateTable",
+      "glue:CreatePartition",
+      "glue:BatchCreatePartition",
+      "glue:UpdatePartition",
+    ]
+
+    resources = [
+      "arn:aws:glue:eu-west-1:${var.account_id}:catalog",
+      "arn:aws:glue:eu-west-1:${var.account_id}:database/data-platform_*",
+      "arn:aws:glue:eu-west-1:${var.account_id}:table/data-platform_*/*",
+    ]
+  }
 }
 
 # IAM role to be assumed by AWS Glue jobs or crawlers.
