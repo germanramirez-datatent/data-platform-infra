@@ -38,6 +38,7 @@ module "iam" {
   raw_bucket_arn            = module.s3_data_lake.raw_bucket_arn
   curated_bucket_arn        = module.s3_data_lake.curated_bucket_arn
   athena_results_bucket_arn = module.s3_data_lake.athena_results_bucket_arn
+  assets_bucket_arn         = module.s3_data_lake.assets_bucket_arn
 
   # eks_oidc_provider_url vacío hasta Fase 3
 }

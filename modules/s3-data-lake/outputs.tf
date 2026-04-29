@@ -27,3 +27,13 @@ output "athena_results_bucket_id" {
   description = "Name/ID of the athena_results bucket"
   value       = aws_s3_bucket.athena_results.id
 }
+
+output "assets_bucket_id" {
+  description = "Name/ID of the assets S3 bucket — used for Glue scripts and wheels"
+  value       = aws_s3_bucket.assets.id
+}
+
+output "assets_bucket_arn" {
+  description = "ARN of the assets S3 bucket"
+  value       = aws_s3_bucket.assets.arn
+}

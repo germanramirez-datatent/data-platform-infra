@@ -36,7 +36,8 @@ data "aws_iam_policy_document" "glue_access" {
 
     resources = [
       var.raw_bucket_arn,
-      var.curated_bucket_arn
+      var.curated_bucket_arn,
+      var.assets_bucket_arn
     ]
   }
 
@@ -52,7 +53,8 @@ data "aws_iam_policy_document" "glue_access" {
 
     resources = [
       "${var.raw_bucket_arn}/*",
-      "${var.curated_bucket_arn}/*"
+      "${var.curated_bucket_arn}/*",
+      "${var.assets_bucket_arn}/*"
     ]
   }
 

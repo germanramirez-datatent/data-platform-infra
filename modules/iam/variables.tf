@@ -45,3 +45,8 @@ variable "athena_results_bucket_arn" {
   description = "ARN of the athena_results S3 bucket — used in Glue IAM policy"
   type        = string
 }
+
+variable "assets_bucket_arn" {
+  description = "ARN of the assets S3 bucket — Glue needs read access to download scripts"
+  type        = string
+}
