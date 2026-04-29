@@ -22,3 +22,8 @@ variable "curated_bucket_id" {
   description = "Name/ID of the curated S3 bucket — used as crawler target"
   type        = string
 }
+
+variable "assets_bucket_id" {
+  description = "Name/ID of the assets S3 bucket — used to reference Glue scripts and wheels"
+  type        = string
+}

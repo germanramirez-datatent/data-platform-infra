@@ -52,6 +52,7 @@ module "glue" {
   glue_role_arn     = module.iam.glue_role_arn
   raw_bucket_id     = module.s3_data_lake.raw_bucket_id
   curated_bucket_id = module.s3_data_lake.curated_bucket_id
+  assets_bucket_id  = module.s3_data_lake.assets_bucket_id
 }
 
 module "athena" {
