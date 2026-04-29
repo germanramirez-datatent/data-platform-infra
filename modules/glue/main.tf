@@ -54,10 +54,15 @@ resource "aws_glue_job" "transform_to_curated" {
   default_arguments = {
     "--RAW_BUCKET"                       = var.raw_bucket_id
     "--CURATED_BUCKET"                   = var.curated_bucket_id
-    "--WRITE_MODE"                       = "append"
+    "--WRITE_MODE"                       = "overwrite"
     "--extra-py-files"                   = local.transform_wheel_s3_uri
     "--enable-continuous-cloudwatch-log" = "true"
     "--enable-metrics"                   = "true"
     "--job-language"                     = "python"
+    "--conf"                             = "spark.sql.sources.partitionOverwriteMode=dynamic"
+  }
+
+  execution_property {
+    max_concurrent_runs = 4
   }
 }
