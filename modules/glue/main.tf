@@ -19,6 +19,13 @@ resource "aws_glue_catalog_database" "curated" {
   description = "Glue Catalog database for curated data prepared for analytics workloads."
 }
 
+# Spark checks the default Glue database when the Glue Data Catalog is enabled.
+# Manage it in Terraform so ETL jobs do not need glue:CreateDatabase at runtime.
+resource "aws_glue_catalog_database" "default" {
+  name        = "default"
+  description = "Default Glue Catalog database required by Spark catalog initialization."
+}
+
 # Crawler that scans the raw S3 bucket and updates the raw Glue database.
 resource "aws_glue_crawler" "raw" {
   name          = local.raw_crawler_name
@@ -40,6 +47,8 @@ resource "aws_glue_job" "transform_to_curated" {
   role_arn    = var.glue_role_arn
   description = "Transforms raw JSON data into curated Parquet datasets."
 
+  depends_on = [aws_glue_catalog_database.default]
+
   glue_version      = "4.0"
   worker_type       = "G.1X"
   number_of_workers = 2
@@ -55,8 +64,10 @@ resource "aws_glue_job" "transform_to_curated" {
     "--RAW_BUCKET"                       = var.raw_bucket_id
     "--CURATED_BUCKET"                   = var.curated_bucket_id
     "--WRITE_MODE"                       = "overwrite"
+    "--CURATED_DATABASE"                 = aws_glue_catalog_database.curated.name
     "--extra-py-files"                   = local.transform_wheel_s3_uri
     "--enable-continuous-cloudwatch-log" = "true"
+    "--enable-glue-datacatalog"          = "true"
     "--enable-metrics"                   = "true"
     "--job-language"                     = "python"
     "--conf"                             = "spark.sql.sources.partitionOverwriteMode=dynamic"

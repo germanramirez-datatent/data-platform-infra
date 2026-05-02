@@ -65,7 +65,8 @@ data "aws_iam_policy_document" "glue_access" {
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
-      "logs:PutLogEvents"
+      "logs:PutLogEvents",
+      "cloudwatch:PutMetricData",
     ]
 
     resources = ["*"]
@@ -88,15 +89,42 @@ data "aws_iam_policy_document" "glue_access" {
       "glue:GetPartitions",
       "glue:CreateTable",
       "glue:UpdateTable",
+      "glue:DeleteTable",
+      "glue:BatchDeleteTable",
       "glue:CreatePartition",
       "glue:BatchCreatePartition",
       "glue:UpdatePartition",
+      "glue:DeletePartition",
+      "glue:BatchDeletePartition",
+      "glue:GetUserDefinedFunction",
+      "glue:GetUserDefinedFunctions",
     ]
 
     resources = [
       "arn:aws:glue:eu-west-1:${var.account_id}:catalog",
       "arn:aws:glue:eu-west-1:${var.account_id}:database/data-platform_*",
       "arn:aws:glue:eu-west-1:${var.account_id}:table/data-platform_*/*",
+      "arn:aws:glue:eu-west-1:${var.account_id}:userDefinedFunction/data-platform_*/*",
+    ]
+  }
+
+  statement {
+    sid    = "AllowGlueDefaultDatabaseRead"
+    effect = "Allow"
+
+    actions = [
+      "glue:GetDatabase",
+      "glue:GetTable",
+      "glue:GetTables",
+      "glue:GetUserDefinedFunction",
+      "glue:GetUserDefinedFunctions",
+    ]
+
+    resources = [
+      "arn:aws:glue:eu-west-1:${var.account_id}:catalog",
+      "arn:aws:glue:eu-west-1:${var.account_id}:database/default",
+      "arn:aws:glue:eu-west-1:${var.account_id}:table/default/*",
+      "arn:aws:glue:eu-west-1:${var.account_id}:userDefinedFunction/default/*",
     ]
   }
 }
