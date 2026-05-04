@@ -77,3 +77,13 @@ module "ecr" {
     "stream-consumer",
   ]
 }
+
+output "ecr_repository_urls" {
+  description = "ECR repository URLs by image name"
+  value       = module.ecr.repository_urls
+}
+
+output "github_actions_role_arn" {
+  description = "ARN of the GitHub Actions OIDC role"
+  value       = module.iam.github_actions_role_arn
+}
