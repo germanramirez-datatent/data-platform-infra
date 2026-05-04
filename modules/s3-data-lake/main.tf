@@ -23,7 +23,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "raw" {
   rule {
     id     = "archive-to-glacier"
     status = "Enabled"
-    
+
     filter {}
 
     transition {

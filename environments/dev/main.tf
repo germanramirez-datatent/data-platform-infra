@@ -22,9 +22,9 @@ provider "aws" {
 }
 
 module "s3_data_lake" {
-  source  = "../../modules/s3-data-lake"
-  project = "data-platform"
-  env     = "dev"
+  source     = "../../modules/s3-data-lake"
+  project    = "data-platform"
+  env        = "dev"
   account_id = "811430801421"
 }
 
@@ -46,8 +46,8 @@ module "iam" {
 module "glue" {
   source = "../../modules/glue"
 
-  project    = "data-platform"
-  env        = "dev"
+  project = "data-platform"
+  env     = "dev"
 
   glue_role_arn     = module.iam.glue_role_arn
   raw_bucket_id     = module.s3_data_lake.raw_bucket_id

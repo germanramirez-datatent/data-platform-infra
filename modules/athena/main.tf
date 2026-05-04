@@ -1,5 +1,5 @@
 locals {
-  workgroup_name           = "${var.project}-${var.env}-analytics"
+  workgroup_name = "${var.project}-${var.env}-analytics"
 }
 
 # Athena workgroup used for analytics queries across the data platform.
