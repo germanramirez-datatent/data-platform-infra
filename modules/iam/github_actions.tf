@@ -132,6 +132,7 @@ data "aws_iam_policy_document" "github_actions" {
       "s3:DeleteBucket",
       "s3:DeleteBucketTagging",
       "s3:GetBucketAcl",
+      "s3:GetBucketCORS",
       "s3:GetBucketLocation",
       "s3:GetBucketEncryption",
       "s3:GetBucketPolicy",
