@@ -20,7 +20,6 @@ jobs:
   terraform-ci:
     name: Terraform fmt + validate + plan
     runs-on: ubuntu-latest
-    environment: dev
 
     defaults:
       run:
