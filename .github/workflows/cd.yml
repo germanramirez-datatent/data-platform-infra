@@ -1,47 +1,104 @@
 name: CD
-
+ 
 on:
   push:
     branches: [main]
     paths:
       - 'environments/**'
       - 'modules/**'
-
+ 
 permissions:
   id-token: write
   contents: read
-
+ 
 env:
   AWS_REGION: eu-west-1
-  TF_WORKING_DIR: environments/dev
-
+ 
 jobs:
-  terraform-apply:
-    name: Terraform apply
+  terraform-plan:
+    name: Terraform plan
     runs-on: ubuntu-latest
-    environment: dev  # requires manual approval from environment reviewers
-
+    environment: dev
+ 
     defaults:
       run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
-
+        working-directory: environments/dev
+ 
+    outputs:
+      plan_exitcode: ${{ steps.plan.outputs.exitcode }}
+ 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+ 
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-
+ 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "~1.7"
-
+ 
       - name: Terraform init
         run: terraform init
-
+ 
+      - name: Terraform plan
+        id: plan
+        run: |
+          terraform plan -no-color -detailed-exitcode -out=tfplan 2>&1 | tee plan_output.txt
+          echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+ 
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: environments/dev/tfplan
+          retention-days: 1
+ 
+      - name: Plan summary
+        run: |
+          echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
+          echo '```hcl' >> $GITHUB_STEP_SUMMARY
+          cat plan_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+ 
+  terraform-apply:
+    name: Terraform apply
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: terraform-plan
+    if: needs.terraform-plan.outputs.plan_exitcode == '2'
+ 
+    defaults:
+      run:
+        working-directory: environments/dev
+ 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+ 
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+ 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.7"
+ 
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: environments/dev
+ 
+      - name: Terraform init
+        run: terraform init
+ 
       - name: Terraform apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
