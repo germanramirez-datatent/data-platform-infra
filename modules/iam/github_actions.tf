@@ -17,6 +17,7 @@ locals {
   # Additional subjects for pull request workflows (no environment context).
   github_actions_pr_subjects = [
     "repo:${var.github_owner}/data-platform-dbt:pull_request",
+    "repo:${var.github_owner}/data-platform-infra:pull_request",
   ]
 
   github_oidc_thumbprints = [
@@ -174,6 +175,20 @@ data "aws_iam_policy_document" "github_actions" {
     resources = ["*"]
   }
 
+  # --- S3 object access for dbt (read source data + write Athena query results) ---
+  statement {
+    sid    = "AllowS3DataLakeObjects"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = ["arn:aws:s3:::${var.project}-*/*"]
+  }
+
   # --- IAM management ---
   statement {
     sid    = "AllowIAMManagement"
@@ -221,20 +236,33 @@ data "aws_iam_policy_document" "github_actions" {
       "glue:DeleteDatabase",
       "glue:GetDatabase",
       "glue:GetDatabases",
-      "glue:GetTags",
       "glue:UpdateDatabase",
+      "glue:GetTable",
+      "glue:GetTables",
+      "glue:CreateTable",
+      "glue:UpdateTable",
+      "glue:DeleteTable",
+      "glue:GetPartition",
+      "glue:GetPartitions",
+      "glue:BatchGetPartition",
+      "glue:CreatePartition",
+      "glue:UpdatePartition",
+      "glue:DeletePartition",
+      "glue:BatchCreatePartition",
+      "glue:BatchDeletePartition",
+      "glue:GetTags",
+      "glue:TagResource",
+      "glue:UntagResource",
       "glue:CreateCrawler",
       "glue:DeleteCrawler",
       "glue:GetCrawler",
       "glue:GetCrawlers",
       "glue:UpdateCrawler",
-      "glue:TagResource",
       "glue:CreateJob",
       "glue:DeleteJob",
       "glue:GetJob",
       "glue:GetJobs",
       "glue:UpdateJob",
-      "glue:UntagResource",
     ]
 
     resources = ["*"]
@@ -254,6 +282,23 @@ data "aws_iam_policy_document" "github_actions" {
       "athena:TagResource",
       "athena:UntagResource",
       "athena:ListTagsForResource",
+    ]
+
+    resources = ["*"]
+  }
+
+  # --- Athena query execution (required by dbt to run and poll queries) ---
+  statement {
+    sid    = "AllowAthenaQueryExecution"
+    effect = "Allow"
+
+    actions = [
+      "athena:StartQueryExecution",
+      "athena:StopQueryExecution",
+      "athena:GetQueryExecution",
+      "athena:GetQueryResults",
+      "athena:ListQueryExecutions",
+      "athena:BatchGetQueryExecution",
     ]
 
     resources = ["*"]
