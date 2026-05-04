@@ -14,6 +14,11 @@ locals {
     ]
   ])
 
+  # Additional subjects for pull request workflows (no environment context).
+  github_actions_pr_subjects = [
+    "repo:${var.github_owner}/data-platform-dbt:pull_request",
+  ]
+
   github_oidc_thumbprints = [
     "6938fd4d98bab03faadb97b34396831e3780aea1",
     "1c58a3a8518e8759bf075b76b750d4f2df264fcd",
@@ -44,10 +49,11 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     }
 
     # Restrict to repositories owned by github_owner and explicitly allowed GitHub Environments.
+    # Also allows pull_request triggers from data-platform-dbt.
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = local.github_actions_allowed_subjects
+      values   = concat(local.github_actions_allowed_subjects, local.github_actions_pr_subjects)
     }
 
     # Enforce audience - prevents token reuse across AWS accounts
