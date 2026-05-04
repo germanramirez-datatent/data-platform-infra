@@ -48,8 +48,12 @@ jobs:
       - name: Terraform plan
         id: plan
         run: |
+          set +e
           terraform plan -no-color -detailed-exitcode -out=tfplan 2>&1 | tee plan_output.txt
-          echo "exitcode=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+          exitcode=${PIPESTATUS[0]}
+          set -e
+          echo "exitcode=${exitcode}" >> $GITHUB_OUTPUT
+          if [ "${exitcode}" -eq 1 ]; then exit 1; fi
  
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
