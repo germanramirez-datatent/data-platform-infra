@@ -62,3 +62,18 @@ module "athena" {
   env                      = "dev"
   athena_results_bucket_id = module.s3_data_lake.athena_results_bucket_id
 }
+
+module "ecr" {
+  source  = "../../modules/ecr"
+  project = "data-platform"
+
+  image_names = [
+    "simulation-api",
+    "python-ingestor",
+    "data-quality",
+    "glue-trigger",
+    "dbt-runner",
+    "serving-api",
+    "stream-consumer",
+  ]
+}
