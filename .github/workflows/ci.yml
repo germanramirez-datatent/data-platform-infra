@@ -8,12 +8,21 @@ on:
       - 'modules/**'
 
 permissions:
+  id-token: write
   contents: read
 
+env:
+  AWS_REGION: eu-west-1
+
 jobs:
-  terraform-fmt-validate:
-    name: Terraform fmt + validate
+  terraform-ci:
+    name: Terraform fmt + validate + plan
     runs-on: ubuntu-latest
+    environment: dev
+
+    defaults:
+      run:
+        working-directory: environments/dev
 
     steps:
       - name: Checkout
@@ -25,10 +34,32 @@ jobs:
           terraform_version: "~1.7"
 
       - name: Terraform fmt check
-        run: terraform fmt -check -recursive
+        run: terraform -chdir=../../ fmt -check -recursive
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init
+        run: terraform init
 
       - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
         run: |
-          cd environments/dev
-          terraform init -backend=false
-          terraform validate
+          set +e
+          terraform plan -no-color -detailed-exitcode 2>&1 | tee plan_output.txt
+          exitcode=${PIPESTATUS[0]}
+          set -e
+          if [ "${exitcode}" -eq 1 ]; then exit 1; fi
+
+      - name: Plan summary
+        if: always()
+        run: |
+          echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
+          echo '```hcl' >> $GITHUB_STEP_SUMMARY
+          cat plan_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
