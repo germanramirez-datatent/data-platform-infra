@@ -130,22 +130,32 @@ data "aws_iam_policy_document" "github_actions" {
     actions = [
       "s3:CreateBucket",
       "s3:DeleteBucket",
+      "s3:DeleteBucketTagging",
+      "s3:GetBucketAcl",
       "s3:GetBucketLocation",
-      "s3:GetBucketVersioning",
       "s3:GetBucketEncryption",
       "s3:GetBucketPolicy",
       "s3:GetBucketPublicAccessBlock",
+      "s3:GetBucketTagging",
+      "s3:GetBucketVersioning",
       "s3:GetLifecycleConfiguration",
       "s3:ListBucket",
-      "s3:ListAllMyBuckets",
       "s3:PutBucketEncryption",
       "s3:PutBucketPolicy",
       "s3:PutBucketPublicAccessBlock",
+      "s3:PutBucketTagging",
       "s3:PutBucketVersioning",
       "s3:PutLifecycleConfiguration",
     ]
 
     resources = ["arn:aws:s3:::${var.project}-*"]
+  }
+
+  statement {
+    sid       = "AllowS3ListBuckets"
+    effect    = "Allow"
+    actions   = ["s3:ListAllMyBuckets"]
+    resources = ["*"]
   }
 
   # --- IAM management ---
@@ -195,6 +205,7 @@ data "aws_iam_policy_document" "github_actions" {
       "glue:DeleteDatabase",
       "glue:GetDatabase",
       "glue:GetDatabases",
+      "glue:GetTags",
       "glue:UpdateDatabase",
       "glue:CreateCrawler",
       "glue:DeleteCrawler",
@@ -207,6 +218,7 @@ data "aws_iam_policy_document" "github_actions" {
       "glue:GetJob",
       "glue:GetJobs",
       "glue:UpdateJob",
+      "glue:UntagResource",
     ]
 
     resources = ["*"]
