@@ -6,6 +6,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -21,11 +29,47 @@ provider "aws" {
   }
 }
 
+data "aws_eks_cluster_auth" "this" {
+  name = module.eks.cluster_name
+}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.this.token
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    token                  = data.aws_eks_cluster_auth.this.token
+  }
+}
+
 module "s3_data_lake" {
   source     = "../../modules/s3-data-lake"
   project    = "data-platform"
   env        = "dev"
   account_id = "811430801421"
+}
+
+module "argo" {
+  source = "../../modules/argo"
+
+  cluster_name           = module.eks.cluster_name
+  cluster_endpoint       = module.eks.cluster_endpoint
+  cluster_ca_certificate = module.eks.cluster_certificate_authority_data
+  eso_role_arn           = module.iam.eso_role_arn
+}
+
+module "eks" {
+  source              = "../../modules/eks"
+
+  project             = "data-platform"
+  env                 = "dev"
+
+  node_instance_types = ["t3.small"]
 }
 
 module "iam" {
@@ -40,7 +84,7 @@ module "iam" {
   athena_results_bucket_arn = module.s3_data_lake.athena_results_bucket_arn
   assets_bucket_arn         = module.s3_data_lake.assets_bucket_arn
 
-  # eks_oidc_provider_url vacío hasta Fase 3
+  eks_oidc_provider_url = module.eks.oidc_provider_url
 }
 
 module "glue" {
@@ -86,4 +130,19 @@ output "ecr_repository_urls" {
 output "github_actions_role_arn" {
   description = "ARN of the GitHub Actions OIDC role"
   value       = module.iam.github_actions_role_arn
+}
+
+output "eks_cluster_name" {
+  description = "Name of the EKS cluster"
+  value       = module.eks.cluster_name
+}
+
+output "eks_cluster_endpoint" {
+  description = "Kubernetes API server endpoint"
+  value       = module.eks.cluster_endpoint
+}
+
+output "eks_oidc_provider_url" {
+  description = "OIDC issuer URL for IRSA"
+  value       = module.eks.oidc_provider_url
 }
